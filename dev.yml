@@ -1,58 +1,90 @@
 trigger:
- - main
- - feature/*
+- main
+- feature/*
 
 pool: mypool
 
+parameters:
+- name: environment
+  displayName: Which environment?
+  type: string
+  values:
+  - dev
+  - prod
+
 stages:
-  - stage: Validate
-    displayName: Validate
-    jobs:  
-      - job: 
-        displayName: Validate
-        steps:
-          - task: TerraformInstaller@1
-            inputs:
-              terraformVersion: 'latest'
-          - task: TerraformTask@5
-            displayName: init
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
-              backendServiceArm: 'newservice'
-              backendAzureRmStorageAccountName: 'pipelinetfstate'
-              backendAzureRmContainerName: 'xyzcontainer'
-              backendAzureRmKey: 'aaa.tfstate'
-          - task: TerraformTask@5
-            inputs:
-              provider: 'azurerm'
-              command: 'validate'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
 
-  - stage: Plan
-    displayName: Plan
-    jobs:  
-      - job: 
-        displayName: plan
-        steps:
-          - task: TerraformTask@5
-            displayName: init
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
-              backendServiceArm: 'newservice'
-              backendAzureRmStorageAccountName: 'pipelinetfstate'
-              backendAzureRmContainerName: 'xyzcontainer'
-              backendAzureRmKey: 'aaa.tfstate'
+# =========================
+# VALIDATE
+# =========================
 
-          - task: TerraformTask@5
-            inputs:
-              provider: 'azurerm'
-              command: 'plan'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
-              environmentServiceNameAzureRM: 'newservice'
+- stage: Validate
+  displayName: Validate
+
+  jobs:
+  - job: Validate
+    displayName: Terraform Validate
+
+    steps:
+
+    - task: TerraformInstaller@1
+      displayName: Install Terraform
+      inputs:
+        terraformVersion: 'latest'
+
+    - task: TerraformTask@5
+      displayName: Terraform Init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/environments/${{ parameters.environment }}'
+        backendServiceArm: 'newservice'
+        backendAzureRmStorageAccountName: 'pipelinetfstate'
+        backendAzureRmContainerName: 'xyzcontainer'
+        backendAzureRmKey: '${{ parameters.environment }}.tfstate'
+
+    - task: TerraformTask@5
+      displayName: Terraform Validate
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/environments/${{ parameters.environment }}'
 
 
-          
+# =========================
+# PLAN
+# =========================
+
+- stage: Plan
+  displayName: Plan
+  dependsOn: Validate
+
+  jobs:
+  - job: Plan
+    displayName: Terraform Plan
+
+    steps:
+
+    - task: TerraformInstaller@1
+      displayName: Install Terraform
+      inputs:
+        terraformVersion: 'latest'
+
+    - task: TerraformTask@5
+      displayName: Terraform Init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/environments/${{ parameters.environment }}'
+        backendServiceArm: 'newservice'
+        backendAzureRmStorageAccountName: 'pipelinetfstate'
+        backendAzureRmContainerName: 'xyzcontainer'
+        backendAzureRmKey: '${{ parameters.environment }}.tfstate'
+
+    - task: TerraformTask@5
+      displayName: Terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/environments/${{ parameters.environment }}'
+        environmentServiceNameAzureRM: 'newservice'
