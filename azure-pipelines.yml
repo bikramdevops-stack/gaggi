@@ -19,7 +19,7 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)environments/dev'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
               backendServiceArm: 'newservice'
               backendAzureRmStorageAccountName: 'pipelinetfstate'
               backendAzureRmContainerName: 'xyzcontainer'
@@ -41,7 +41,7 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)environments/dev'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
               backendServiceArm: 'newservice'
               backendAzureRmStorageAccountName: 'pipelinetfstate'
               backendAzureRmContainerName: 'xyzcontainer'
