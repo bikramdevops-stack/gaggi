@@ -5,7 +5,7 @@ trigger:
 pool: mypool
 
 parameters:
-- name: environments
+- name: environment
   displayName: which environment?
   type: string
   values:
@@ -54,7 +54,7 @@ stages:
               backendServiceArm: 'newservice'
               backendAzureRmStorageAccountName: 'pipelinetfstate'
               backendAzureRmContainerName: 'xyzcontainer'
-              backendAzureRmKey: 'aaa.tfstate'
+              backendAzureRmKey: '${{ parameters.environment }}.tfstate'
 
           - task: TerraformTask@5
             inputs:
