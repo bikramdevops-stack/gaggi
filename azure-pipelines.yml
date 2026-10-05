@@ -1,0 +1,58 @@
+trigger:
+ - main
+ - feature/*
+
+pool: mypool
+
+stages:
+  - stage: Validate
+    displayName: Validate
+    jobs:  
+      - job: 
+        displayName: Validate
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: 'latest'
+          - task: TerraformTask@5
+            displayName: init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)environments/dev'
+              backendServiceArm: 'newservice'
+              backendAzureRmStorageAccountName: 'pipelinetfstate'
+              backendAzureRmContainerName: 'xyzcontainer'
+              backendAzureRmKey: 'aaa.tfstate'
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
+
+  - stage: Plan
+    displayName: Plan
+    jobs:  
+      - job: 
+        displayName: plan
+        steps:
+          - task: TerraformTask@5
+            displayName: init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)environments/dev'
+              backendServiceArm: 'newservice'
+              backendAzureRmStorageAccountName: 'pipelinetfstate'
+              backendAzureRmContainerName: 'xyzcontainer'
+              backendAzureRmKey: 'aaa.tfstate'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
+              environmentServiceNameAzureRM: 'newservice'
+
+
+          
